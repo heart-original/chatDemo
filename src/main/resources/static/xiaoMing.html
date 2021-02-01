@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>当前用户xiaoMing</title>
+</head>
+<style>
+    #message{
+        width: 50%;
+        height: 500px;
+        border: 1px solid black;
+        background-color: darkgray;
+    }
+
+    #inputVal{
+        width: 50%;
+    }
+    input{
+        width: 92%;
+    }
+</style>
+<body>
+<h1>当前用户xiaoMing</h1>
+<div id="message">
+
+</div>
+<div id="inputVal">
+    <input type="text" name="text">
+    <input type="file" id="file" onchange="chooseFile()"/>
+    <button onclick="send()">发送</button>
+</div>
+
+<script>
+    var messageEl=document.getElementById("message");
+    var inputEl=document.getElementsByTagName("input")[0];
+    var websocket=null;
+    if('WebSocket' in window){
+        websocket=new WebSocket("ws:localhost:8080/websocket/xiaoMing");
+    }else {
+        alert("浏览器不支持");
+
+    }
+    websocket.onopen=function () {
+        console.log("webscoket已经连接成功");
+        addMessage("webscoket已经连接成功");
+
+    };
+    websocket.onclose=function () {
+        console.log("webscoket连接失败");
+        addMessage("webscoket连接失败");
+    };
+    websocket.onmessage=function (event) {
+        var json = JSON.parse(event.data);
+        if (json.messageType == 1){
+            addMessage(json.message);
+        } else if (json.messageType == 2) {
+            addImage(json.message);
+        }
+    };
+    websocket.onerror=function () {
+        console.log("webscoket连接失败");
+        addMessage("webscoket连接失败");
+    };
+    function addMessage(message) {
+        messageEl.innerHTML+=message+"</br>";
+    }
+
+    //将图片消息显示在网页上
+    function addImage(innerHTML) {
+        messageEl.innerHTML = messageEl.innerHTML + '<img width="150px" src='+innerHTML+'>' + '<br/>';
+    }
+
+    function send() {
+        var dto = {
+            wxUserId:1,
+            receiver:2,
+            messageType:1,
+            chatMessage:"xiaoMing:"+inputEl.value,
+        }
+        websocket.send(JSON.stringify(dto));
+        messageEl.innerHTML+="我:"+inputEl.value+"</br>";
+    }
+
+
+    //发送图片消息
+    function chooseFile() {
+        var fileList = document.getElementById("file").files;
+        var type = fileList[0].type;
+
+        if(fileList.length > 0){
+            var fileReader = new FileReader();
+            fileReader.readAsDataURL(fileList[0]);
+            fileReader.onload = function (e) {
+                var dto = {
+                    wxUserId:1,
+                    receiver:2,
+                    messageType:2,
+                    chatMessage: e.target.result
+                };
+                websocket.send(JSON.stringify(dto));
+            }
+        }
+    }
+
+
+</script>
+
+</body>
+</html>
