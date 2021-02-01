@@ -2,8 +2,10 @@ package com.example.demo.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.example.demo.dto.ChatDTO;
+import com.example.demo.service.ChatService;
 import com.example.demo.util.ServerEncoder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.websocket.*;
@@ -11,7 +13,6 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,6 +20,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @ServerEndpoint(value = "/websocket/{name}",encoders = {ServerEncoder.class})
 @RestController
 public class WebSocketServer {
+
+    /*此处天坑，不能直接注入 应该为此种写法 否则调用其中方法会报错*/
+    private static ChatService chatService;
+
+    @Autowired
+    public void setChatService(ChatService chatService){
+        WebSocketServer.chatService = chatService;
+    }
 
     //存储客户端的连接对象,每个客户端连接都会产生一个连接对象
     private static ConcurrentHashMap<String,WebSocketServer> map=new ConcurrentHashMap();
@@ -33,7 +42,8 @@ public class WebSocketServer {
 
         this.session=session;
         this.name=name;
-        send(new Object());
+        /*System.out.println("----"+chatService.selectReChatMessageById().size());
+        send(chatService.selectReChatMessageById());*/
     }
     @OnClose
     public void close(){
@@ -55,13 +65,15 @@ public class WebSocketServer {
         JSONObject jsonObject = new JSONObject();
         dto = objectMapper.readValue(message, ChatDTO.class);
         dto.setSendTime(new Date());
-        System.out.println(dto.toString());
+        jsonObject.put("nickName",name+":");
+        jsonObject.put("messageType",dto.getMessageType());
         jsonObject.put("message",dto.getChatMessage());
 
         Set<Map.Entry<String, WebSocketServer>> entries = map.entrySet();
         for (Map.Entry<String, WebSocketServer> entry : entries) {
             if(!entry.getKey().equals(name)){//将消息转发到其他非自身客户端
                 //entry.getValue().send(message);
+                /*chatService.insertReChatMessage(dto);*/
                 entry.getValue().send(jsonObject.toJSONString());
             }
         }
@@ -73,14 +85,11 @@ public class WebSocketServer {
         }
     }
 
-    public void send(Object object) throws IOException,Exception {
+    /*public void send(List list) throws IOException,Exception {
         if(session.isOpen()){
-            Map<Object,Object> map = new HashMap();
-            map.put(1,1);
-            map.put(2,2);
-            session.getBasicRemote().sendObject(map);
+            session.getBasicRemote().sendObject(list);
         }
-    }
+    }*/
 
     public int  getConnetNum(){
         return map.size();

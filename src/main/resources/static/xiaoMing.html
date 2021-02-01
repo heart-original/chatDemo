@@ -26,8 +26,8 @@
 </div>
 <div id="inputVal">
     <input type="text" name="text">
-    <input type="file" id="file" onchange="chooseFile()"/>
     <button onclick="send()">发送</button>
+    <input type="file" id="file" onchange="chooseFile()"/>
 </div>
 
 <script>
@@ -43,7 +43,6 @@
     websocket.onopen=function () {
         console.log("webscoket已经连接成功");
         addMessage("webscoket已经连接成功");
-
     };
     websocket.onclose=function () {
         console.log("webscoket连接失败");
@@ -51,9 +50,10 @@
     };
     websocket.onmessage=function (event) {
         var json = JSON.parse(event.data);
-        if (json.messageType == 1){
-            addMessage(json.message);
-        } else if (json.messageType == 2) {
+        if (json.messageType == "1"){
+            addMessage(json.nickName + json.message);
+        } else if (json.messageType == "2") {
+            addMessage(json.nickName);
             addImage(json.message);
         }
     };
@@ -74,8 +74,9 @@
         var dto = {
             wxUserId:1,
             receiver:2,
-            messageType:1,
-            chatMessage:"xiaoMing:"+inputEl.value,
+            messageType:"1",
+           /* nickName:"xiaoMing:",*/
+            chatMessage:inputEl.value
         }
         websocket.send(JSON.stringify(dto));
         messageEl.innerHTML+="我:"+inputEl.value+"</br>";
@@ -94,7 +95,8 @@
                 var dto = {
                     wxUserId:1,
                     receiver:2,
-                    messageType:2,
+                    messageType:"2",
+                    nickName:"xiaoMing:",
                     chatMessage: e.target.result
                 };
                 websocket.send(JSON.stringify(dto));

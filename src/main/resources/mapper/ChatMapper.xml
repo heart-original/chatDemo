@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.ChatMapper">
+
+    <resultMap type="com.example.demo.dto.ChatDTO" id="ReChatMessageResult">
+        <result property="wxUserId"    column="wx_user_id"    />
+        <result property="receiver"    column="receiver"    />
+        <result property="chatMessage"    column="chat_message"    />
+        <result property="sendTime"    column="send_time"    />
+        <result property="messageType"    column="message_type"    />
+    </resultMap>
+
+    <select id="selectReChatMessageById" parameterType="Long" resultMap="ReChatMessageResult">
+        select wx_user_id, receiver, chat_message, send_time, message_type from re_chat_message
+        where wx_user_id = 3 and receiver = 4
+    </select>
+
+    <insert id="insertReChatMessage" parameterType="com.example.demo.dto.ChatDTO" useGeneratedKeys="true" keyProperty="messageId">
+        insert into re_chat_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="wxUserId != null">wx_user_id,</if>
+            <if test="receiver != null">receiver,</if>
+            <if test="chatMessage != null">chat_message,</if>
+            <if test="sendTime != null">send_time,</if>
+            <if test="messageType != null">message_type,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="wxUserId != null">#{wxUserId},</if>
+            <if test="receiver != null">#{receiver},</if>
+            <if test="chatMessage != null">#{chatMessage},</if>
+            <if test="sendTime != null">#{sendTime},</if>
+            <if test="messageType != null">#{messageType},</if>
+        </trim>
+    </insert>
+
+    <insert id="insertDemo">
+        insert into re_chat_message
+        set wx_user_id = 1
+    </insert>
+
+</mapper>

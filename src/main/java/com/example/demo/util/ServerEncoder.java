@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSON;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
-import java.util.Map;
+import java.util.List;
 
 /**
  * 配置WebSocket编码器，用于发送请求的时候可以发送Object对象，实则是json数据
@@ -13,7 +13,7 @@ import java.util.Map;
  * @ClassNmae：ServerEncoder
  *
  */
-public class ServerEncoder implements Encoder.Text<Map> {
+public class ServerEncoder implements Encoder.Text<List> {
 
     @Override
     public void destroy() {
@@ -28,7 +28,7 @@ public class ServerEncoder implements Encoder.Text<Map> {
     }
 
     @Override
-    public String encode(Map list) throws EncodeException {
+    public String encode(List list) throws EncodeException {
         try {
             //return JSON.toJSON(list).toString();
             return JSON.toJSONString(list).toString();
